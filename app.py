@@ -34,6 +34,12 @@ def create_app():
     # Registering Blueprint
     app.register_blueprint(main)
     
+    # Ensure the instance folder exists (crucial for Render since it's not in GitHub)
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
+        
     # Initialize the database here so it works on Render
     with app.app_context():
         db.create_all()
@@ -46,4 +52,6 @@ app = create_app()
 if __name__ == "__main__":
     print("🚀 Campus Hobby Connector is running!")
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, debug=True, host='0.0.0.0', port=port)
+    # Turn off debug mode on Render to prevent the reloader from crashing
+    debug_mode = os.environ.get("RENDER") is None
+    socketio.run(app, debug=debug_mode, host='0.0.0.0', port=port)
